@@ -11,6 +11,9 @@
 //  mips.v
 //  mipsparts.v
 // single-cycle MIPS processor
+
+`include "mipsparts.v"
+`include "alu.v"
 module mips(input          clk, reset,
             output  [31:0] pc,
             input   [31:0] instr,
@@ -21,7 +24,7 @@ module mips(input          clk, reset,
   wire        memtoreg, branch,
                pcsrc, zero,
                alusrc, regdst, regwrite, jump;
-  wire [2:0]  alucontrol;
+  wire [3:0]  alucontrol;
 
   controller c(instr[31:26], instr[5:0], zero,
                memtoreg, memwrite, pcsrc,
@@ -40,7 +43,7 @@ module controller(input  [5:0] op, funct,
                   output       pcsrc, alusrc,
                   output       regdst, regwrite,
                   output       jump,
-                  output [2:0] alucontrol);
+                  output [3:0] alucontrol);
 
   wire [1:0] aluop;
   wire       branch;
@@ -81,19 +84,19 @@ endmodule
 
 module aludec(input  [5:0] funct,
               input  [1:0] aluop,
-              output reg [2:0] alucontrol);
+              output reg [3:0] alucontrol);
 
   always@ (*)
     case(aluop)
-      2'b00: alucontrol <= 3'b010;  // add
-      2'b01: alucontrol <= 3'b110;  // sub
+      2'b00: alucontrol <= 4'b0000;  // add
+      2'b01: alucontrol <= 4'b0010;  // sub
       default: case(funct)          // RTYPE
-          6'b100000: alucontrol <= 3'b010; // ADD
-          6'b100010: alucontrol <= 3'b110; // SUB
-          6'b100100: alucontrol <= 3'b000; // AND
-          6'b100101: alucontrol <= 3'b001; // OR
-          6'b101010: alucontrol <= 3'b111; // SLT
-          default:   alucontrol <= 3'bxxx; // ???
+          6'b100000: alucontrol <= 4'b0000; // ADD
+          6'b100010: alucontrol <= 4'b0010; // SUB
+          6'b100100: alucontrol <= 4'b0100; // AND
+          6'b100101: alucontrol <= 4'b0101; // OR
+          6'b101010: alucontrol <= 4'b1010; // SLT
+          default:   alucontrol <= 4'bxxx; // ???
         endcase
     endcase
 endmodule
@@ -102,7 +105,7 @@ module datapath(input         clk, reset,
                 input         memtoreg, pcsrc,
                 input         alusrc, regdst,
                 input         regwrite, jump,
-                input  [2:0]  alucontrol,
+                input  [3:0]  alucontrol,
                 output        zero,
                 output [31:0] pc,
                 input  [31:0] instr,
@@ -139,7 +142,10 @@ module datapath(input         clk, reset,
   // ALU logic
   mux2 #(32)  srcbmux(writedata, signimm, alusrc,
                       srcb);
-  alu         alu(.a(srca), .b(srcb), .f(alucontrol),
-                  .y(aluout), .zero(zero));
-endmodule
 
+  /*alu         alu(.a(srca), .b(srcb), .f(alucontrol),
+                  .y(aluout), .zero(zero));*/
+
+  alu         alu(alucontrol, srca, srcb,
+                  aluout, zero);                  
+endmodule

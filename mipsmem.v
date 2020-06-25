@@ -16,7 +16,9 @@ module dmem(input         clk, we,
   always @(posedge clk)
     if (we)
       RAM[a[31:2]] <= wd;
+
 endmodule
+//-----------------------------------------------
 
 module imem(input  [5:0]  a,
             output [31:0] rd);
@@ -29,5 +31,7 @@ module imem(input  [5:0]  a,
     end
 
   assign rd = RAM[a]; // word aligned
+
 endmodule
+
 

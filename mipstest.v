@@ -3,7 +3,7 @@
 // Updated to SystemVerilog - Harris Harris version
 // Testbench for MIPS processor
 //------------------------------------------------
-
+`include "mipstop.v"
 module testbench();
 
   reg        clk;
