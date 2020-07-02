@@ -35,4 +35,9 @@ module testbench();
         end
       end
     end
+
+    initial begin
+      $dumpfile ("out.vcd");
+      $dumpvars;
+    end
 endmodule
